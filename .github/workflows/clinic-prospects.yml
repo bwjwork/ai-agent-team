@@ -1,0 +1,53 @@
+name: UAE Clinic Prospect Finder
+
+on:
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'نوع العيادة'
+        required: true
+        default: 'عيادة أسنان'
+      cities:
+        description: 'المدن مفصولة بـ |'
+        required: true
+        default: 'دبي|أبوظبي|الشارقة'
+      max_results:
+        description: 'الحد الأقصى لكل مدينة'
+        required: true
+        default: '8'
+  schedule:
+    - cron: '41 6 * * 2'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          crawl4ai-setup
+      - name: Discover prospects
+        env:
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          CATEGORY: ${{ inputs.category || 'عيادة أسنان' }}
+          CITIES: ${{ inputs.cities || 'دبي|أبوظبي|الشارقة' }}
+          MAX_RESULTS: ${{ inputs.max_results || '8' }}
+        run: |
+          python clinic_prospect_agent.py \
+            $(python -c 'import os, shlex; print(" ".join("--city "+shlex.quote(x) for x in os.environ["CITIES"].split("|") if x.strip()))') \
+            --category "$CATEGORY" --max-results "$MAX_RESULTS" --output clinic-prospects.csv
+      - name: Upload prospects
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinic-prospects-${{ github.run_number }}
+          path: clinic-prospects.csv
+          retention-days: 30

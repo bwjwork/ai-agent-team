@@ -1,23 +1,26 @@
 # AI Agent Team
 
-فريق وكلاء مجاني عبر GitHub Actions.
+فريق وكلاء مجاني عبر GitHub Actions لاكتشاف العملاء المحتملين.
 
-## التشغيل
+## وكيل اكتشاف العيادات
 
-1. افتح تبويب **Actions**.
-2. اختر **Market Research Agent**.
-3. اضغط **Run workflow**.
-4. اكتب عبارات البحث مفصولة بـ `|`.
-5. حمّل ملف `leads.csv` من Artifacts.
+افتح **Actions → UAE Clinic Prospect Finder → Run workflow**، ثم اختر نوع العيادة والمدن. يستخدم Brave عند إضافة السر `BRAVE_API_KEY` في **Settings → Secrets and variables → Actions**، ويستخدم DuckDuckGo كبديل عند غياب المفتاح. النتيجة ملف CSV داخل Artifacts.
 
-الوكيل يقرأ صفحات عامة ويحترم robots.txt. لا يتجاوز تسجيل الدخول ولا يرسل رسائل تلقائياً.
+`not_found_in_search` تعني أن موقعاً رسمياً لم يظهر في نتائج البحث، وليست حكماً قطعياً. راجع كل نتيجة يدوياً قبل التواصل. الوكيل يستخدم صفحات عامة فقط، ويحترم robots.txt، ولا يكشط Google Maps مباشرة ولا يتجاوز CAPTCHA أو تسجيل الدخول.
 
-## محلياً
+## وكيل باحث السوق
+
+افتح **Actions → Market Research Agent → Run workflow**، واكتب عبارات البحث مفصولة بـ `|`.
+
+## تشغيل محلي
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 crawl4ai-setup
-python market_research_agent.py --query "وكالات تسويق دبي" --output leads.csv
+python clinic_prospect_agent.py --city دبي --city أبوظبي --category "عيادة أسنان" --output clinic-prospects.csv
+python market_research_agent.py --query "عيادة أسنان دبي" --output leads.csv
 ```
+
+كل النتائج تجريبية/بحثية وليست بديلاً عن المراجعة البشرية أو الالتزام بسياسات المصادر وقوانين التواصل.

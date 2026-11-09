@@ -1,0 +1,47 @@
+name: Clinic Decision Makers
+
+on:
+  workflow_dispatch:
+    inputs:
+      clinics:
+        description: 'أسماء العيادات مفصولة بـ |'
+        required: true
+        default: 'Emirates Hospitals Dubai|عيادة أسنان دبي'
+      max_results:
+        description: 'الحد الأقصى للمصادر لكل عيادة'
+        required: true
+        default: '5'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          crawl4ai-setup
+      - name: Find professional decision makers
+        env:
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          CLINICS: ${{ inputs.clinics || 'Emirates Hospitals Dubai|عيادة أسنان دبي' }}
+          MAX_RESULTS: ${{ inputs.max_results || '5' }}
+        run: |
+          IFS='|' read -ra CLINIC_LIST <<< "$CLINICS"
+          ARGS=()
+          for clinic in "${CLINIC_LIST[@]}"; do ARGS+=(--clinic "$clinic"); done
+          python decision_maker_agent.py "${ARGS[@]}" --max-results "$MAX_RESULTS" --output decision-makers.csv
+      - name: Upload decision makers
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-makers-${{ github.run_number }}
+          path: decision-makers.csv
+          retention-days: 30

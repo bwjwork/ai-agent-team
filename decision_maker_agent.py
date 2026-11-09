@@ -19,9 +19,9 @@ import httpx
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
 
 EMAIL_RE = re.compile(r"[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}", re.I)
-PHONE_RE = re.compile(r"(?<!\d)(?:\+?\d[\d\s().\-]{7,}\d)(?!\d)")
+PHONE_RE = re.compile(r"(?<!\d)(?:(?:\+|00)971|0)[\s().\-]*\d(?:[\d\s().\-]{6,12})\d(?!\d)")
 EN_NAME_RE = re.compile(r"\b(?:Dr\.?|Doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})")
-AR_NAME_RE = re.compile(r"\bد(?:كتور|كتورة)\s+([\u0600-\u06ff]{2,}(?:\s+[\u0600-\u06ff]{2,}){1,3})")
+AR_NAME_RE = re.compile(r"\b(?:د(?:كتور|كتورة)?\.?|الطبيب|الطبيبة)\s+([\u0600-\u06ff]{2,}(?:\s+[\u0600-\u06ff]{2,}){1,3})")
 ROLE_PATTERNS = [
     ("Founder / Owner", re.compile(r"\b(founder|co-founder|owner|proprietor)\b|المؤسس|المالك", re.I)),
     ("CEO / Managing Director", re.compile(r"\b(CEO|chief executive|managing director|general manager)\b|الرئيس التنفيذي|المدير العام", re.I)),
@@ -149,7 +149,7 @@ async def run(clinics: list[str], max_results: int, output: str, delay: float) -
         rows: list[DecisionMaker] = []
         seen: set[tuple[str, str, str]] = set()
         for clinic in clinics:
-            query = f'"{clinic}" founder owner CEO "medical director" dentist doctor'
+            query = f'{clinic} doctor dermatologist founder owner'
             items = await search(crawler, query, max_results)
             print(f"[info] {clinic}: {len(items)} مصادر")
             for item in items:

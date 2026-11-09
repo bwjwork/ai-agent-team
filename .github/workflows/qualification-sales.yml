@@ -1,0 +1,45 @@
+name: Qualification and Sales Drafts
+
+on:
+  workflow_dispatch:
+    inputs:
+      prospects_run_id:
+        description: 'اختياري: رقم تشغيل اكتشاف العيادات لتنزيل CSV'
+        required: false
+      decision_run_id:
+        description: 'اختياري: رقم تشغيل أصحاب القرار لتنزيل CSV'
+        required: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download supplied artifacts when available
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROSPECTS_RUN: ${{ inputs.prospects_run_id }}
+          DECISIONS_RUN: ${{ inputs.decision_run_id }}
+        run: |
+          mkdir -p input
+          if [ -n "$PROSPECTS_RUN" ]; then gh run download "$PROSPECTS_RUN" --repo "$GITHUB_REPOSITORY" --dir input/prospects; fi
+          if [ -n "$DECISIONS_RUN" ]; then gh run download "$DECISIONS_RUN" --repo "$GITHUB_REPOSITORY" --dir input/decisions; fi
+          find input -type f -name '*.csv' -print
+      - name: Prepare inputs
+        run: |
+          prospect=$(find input/prospects -name '*.csv' 2>/dev/null | head -1)
+          decision=$(find input/decisions -name '*.csv' 2>/dev/null | head -1)
+          test -n "$prospect" && test -n "$decision"
+          cp "$prospect" prospects.csv
+          cp "$decision" decision-makers.csv
+      - name: Qualify and draft only
+        run: python qualification_sales_agent.py --prospects prospects.csv --decision-makers decision-makers.csv --output qualified-leads.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qualified-leads-${{ github.run_number }}
+          path: qualified-leads.csv
+          retention-days: 30

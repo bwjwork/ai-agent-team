@@ -1,27 +1,17 @@
 # AI Agent Team
 
-فريق وكلاء مجاني عبر GitHub Actions لاكتشاف العملاء المحتملين.
+فريق وكلاء مجاني عبر GitHub Actions لاكتشاف العملاء المحتملين وتأهيلهم.
 
-## وكيل أصحاب القرار
+## وكيل التأهيل والمبيعات
 
-افتح **Actions → Clinic Decision Makers → Run workflow**، ثم اكتب أسماء العيادات مفصولة بـ `|`. الناتج CSV ويشمل الاسم المهني، المنصب، البريد المهني، هاتف الشركة، المصدر، الدليل، ودرجة الثقة.
+يشغّل بعد اكتمال وكيل العيادات ووكيل أصحاب القرار. من **Actions → Qualification and Sales Drafts → Run workflow** أدخل رقمي التشغيل السابقين، ثم نزّل `qualified-leads.csv` من Artifacts.
 
-المعلومات مهنية ومنشورة علناً فقط. لا يجمع أرقاماً شخصية، ولا يتجاوز تسجيل الدخول أو CAPTCHA، ولا يرسل رسائل. كل صف حالته `needs_human_review` ويجب التحقق منه قبل التواصل.
+ينتج أولوية A/B/C، درجة، سبب التأهيل، رقم/بريد مهني منشور، ومسودة رسالة عربية مخصصة. الإرسال متوقف تماماً وتظهر الحالة `draft_only_manual_approval_required`.
 
-## وكيل اكتشاف العيادات
+## الوكلاء
 
-افتح **Actions → UAE Clinic Prospect Finder → Run workflow**. يستخدم Brave عند إضافة السر `BRAVE_API_KEY`، أو DuckDuckGo كبديل. `not_found_in_search` تعني أن الموقع الرسمي لم يظهر في النتائج، وليست حكماً قطعياً.
+- **UAE Clinic Prospect Finder:** يكتشف العيادات ومؤشرات غياب الموقع.
+- **Clinic Decision Makers:** يجد أصحاب القرار ومعلوماتهم المهنية المنشورة.
+- **Market Research Agent:** بحث عام في صفحات الويب.
 
-## وكيل باحث السوق
-
-افتح **Actions → Market Research Agent → Run workflow**، واكتب عبارات البحث مفصولة بـ `|`.
-
-## محلياً
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-crawl4ai-setup
-python decision_maker_agent.py --clinic "Emirates Hospitals Dubai" --output decision-makers.csv
-```
+المعلومات مهنية ومنشورة علناً فقط. لا يجمع أرقاماً شخصية، ولا يتجاوز تسجيل الدخول أو CAPTCHA، ولا يرسل رسائل تلقائياً.

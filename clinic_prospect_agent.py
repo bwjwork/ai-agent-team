@@ -144,7 +144,7 @@ async def inspect_listing(crawler: AsyncWebCrawler, item: dict[str, str], query:
     return Prospect(name, city_from(f"{query} {text}"), query, "; ".join(phones), "; ".join(emails), url, clean(item["title"], 180), status, evidence, score(status, bool(phones), host in DIRECTORY_HOSTS))
 
 
-async def run(queries: list[str], max_results: int, output: str, delay: float) -> None:
+async def run(queries: list[str], max_results: int, output: str, delay: float, total_limit: int | None = None) -> None:
     browser = BrowserConfig(headless=True, verbose=False)
     async with AsyncWebCrawler(config=browser) as crawler:
         prospects: list[Prospect] = []
@@ -161,6 +161,8 @@ async def run(queries: list[str], max_results: int, output: str, delay: float) -
                 if prospect:
                     prospects.append(prospect)
                 await asyncio.sleep(max(0.5, delay))
+    if total_limit is not None:
+        prospects = prospects[:max(1, total_limit)]
     fields = list(Prospect.__annotations__.keys())
     with open(output, "w", newline="", encoding="utf-8-sig") as file:
         writer = csv.DictWriter(file, fieldnames=fields)
@@ -176,10 +178,11 @@ def main() -> None:
     parser.add_argument("--category", default="عيادة أسنان", help="نوع العيادة")
     parser.add_argument("--output", default="clinic-prospects.csv")
     parser.add_argument("--max-results", type=int, default=8)
+    parser.add_argument("--total-limit", type=int, default=None)
     parser.add_argument("--delay", type=float, default=1.5)
     args = parser.parse_args()
     queries = args.query or [f"{args.category} {city}" for city in (args.city or ["دبي", "أبوظبي", "الشارقة"])]
-    asyncio.run(run(queries, max(1, min(args.max_results, 20)), args.output, args.delay))
+    asyncio.run(run(queries, max(1, min(args.max_results, 20)), args.output, args.delay, args.total_limit))
 
 if __name__ == "__main__":
     main()

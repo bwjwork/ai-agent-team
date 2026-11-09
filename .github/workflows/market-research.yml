@@ -31,9 +31,10 @@ jobs:
         env:
           QUERY_INPUT: ${{ inputs.queries || 'وكالات تسويق دبي|شركات أتمتة دبي' }}
         run: |
-          python market_research_agent.py \
-            $(python -c 'import os, shlex; print(" ".join("--query "+shlex.quote(x) for x in os.environ["QUERY_INPUT"].split("|") if x.strip()))') \
-            --output leads.csv --max-results 5
+          IFS='|' read -ra QUERIES <<< "$QUERY_INPUT"
+          ARGS=()
+          for query in "${QUERIES[@]}"; do ARGS+=(--query "$query"); done
+          python market_research_agent.py "${ARGS[@]}" --output leads.csv --max-results 5
       - name: Upload leads
         uses: actions/upload-artifact@v4
         with:

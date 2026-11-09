@@ -42,9 +42,10 @@ jobs:
           CITIES: ${{ inputs.cities || 'دبي|أبوظبي|الشارقة' }}
           MAX_RESULTS: ${{ inputs.max_results || '8' }}
         run: |
-          python clinic_prospect_agent.py \
-            $(python -c 'import os, shlex; print(" ".join("--city "+shlex.quote(x) for x in os.environ["CITIES"].split("|") if x.strip()))') \
-            --category "$CATEGORY" --max-results "$MAX_RESULTS" --output clinic-prospects.csv
+          IFS='|' read -ra CITY_LIST <<< "$CITIES"
+          ARGS=()
+          for city in "${CITY_LIST[@]}"; do ARGS+=(--city "$city"); done
+          python clinic_prospect_agent.py "${ARGS[@]}" --category "$CATEGORY" --max-results "$MAX_RESULTS" --output clinic-prospects.csv
       - name: Upload prospects
         uses: actions/upload-artifact@v4
         with:
